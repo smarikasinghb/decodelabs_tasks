@@ -1,0 +1,71 @@
+"""
+Project 3: AI Recommendation Logic - Tech Stack Recommender
+Decode Labs - AI Internship 2026
+
+Pipeline: User Skills Input → TF-IDF Vectorization → Cosine Similarity → Top 3 Job Roles
+"""
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# ── KNOWLEDGE BASE: Job Roles & their required skills ────
+job_roles = {
+    "Data Scientist": "python machine learning sql data analysis statistics numpy pandas deep learning",
+    "ML Engineer": "python machine learning deep learning tensorflow pytorch model deployment mlops",
+    "Backend Developer": "python java sql apis rest databases nodejs backend server",
+    "Frontend Developer": "javascript html css react nodejs ui design frontend web",
+    "DevOps Engineer": "aws cloud docker kubernetes automation ci cd linux infrastructure",
+    "Data Analyst": "sql excel data visualization power bi tableau statistics reporting",
+    "AI Engineer": "python deep learning nlp computer vision transformers llm pytorch tensorflow",
+    "Cloud Architect": "aws azure cloud infrastructure networking security devops automation",
+    "Cybersecurity Analyst": "networking security ethical hacking linux firewalls encryption penetration testing",
+    "Full Stack Developer": "javascript python react nodejs sql html css rest apis databases",
+}
+
+# ── PHASE 1: INPUT — Get user skills ─────────────────────
+print("=" * 55)
+print("   TECH STACK RECOMMENDER — DecodeLabs Project 3")
+print("=" * 55)
+print("\nEnter at least 3 skills (comma separated)")
+print("Example: python, machine learning, sql\n")
+
+user_input = input("Your skills: ")
+user_skills = user_input.lower().strip()
+
+# ── PHASE 2: PROCESS — TF-IDF + Cosine Similarity ────────
+
+# Combine all job descriptions + user input into one list
+all_texts = list(job_roles.values()) + [user_skills]
+job_names = list(job_roles.keys())
+
+# Vectorize using TF-IDF
+vectorizer = TfidfVectorizer()
+tfidf_matrix = vectorizer.fit_transform(all_texts)
+
+# User vector is the last one
+user_vector = tfidf_matrix[-1]
+job_vectors = tfidf_matrix[:-1]
+
+# Calculate cosine similarity between user and each job role
+similarities = cosine_similarity(user_vector, job_vectors)[0]
+
+# ── PHASE 3: OUTPUT — Sort and show Top 3 ────────────────
+
+# Pair job names with scores and sort descending
+scored = list(zip(job_names, similarities))
+scored.sort(key=lambda x: x[1], reverse=True)
+
+print("\n" + "=" * 55)
+print("   TOP 3 RECOMMENDED CAREER PATHS FOR YOU")
+print("=" * 55)
+
+for rank, (job, score) in enumerate(scored[:3], start=1):
+    match_percent = round(score * 100, 1)
+    bar = "█" * int(match_percent / 5)
+    print(f"\n#{rank} {job}")
+    print(f"    Match Score : {match_percent}%")
+    print(f"    [{bar}]")
+
+print("\n" + "=" * 55)
+print(f"Based on your skills: {user_input}")
+print("=" * 55)
